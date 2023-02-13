@@ -79,9 +79,23 @@ static void ch36x_demo_mem_operate(int fd, unsigned long memaddr)
     int offset;
     uint8_t obyte;
 
+    int dwords = 15;
+    int bytes = dwords*4;
+    uint32_t bufdws[dwords];
+    uint8_t bufbts[bytes];
+
+    for(int i = 0; i < dwords; i++) bufdws[i] = 0xaaaaaa00 + (uint8_t)i;
+
+    for(int i = 0; i < bytes; i+=4) {
+        bufbts[i] = (uint8_t)i;
+        bufbts[i+1] = 0xaa;
+        bufbts[i+2] = 0xaa;
+        bufbts[i+3] = 0xaa;
+    }
+
     printf("\n---------- Memory read write test ----------\n");
     while (1) {
-        printf("press w to write one byte, r to read one byte, q for quit.\n");
+        printf("press w to write one byte, r to read one byte, b for byte write burst, d for double word write burst, q for quit.\n");
         scanf("%c", &c);
         getchar();
         if (c == 'q')
@@ -106,6 +120,14 @@ static void ch36x_demo_mem_operate(int fd, unsigned long memaddr)
             if (ret != 0)
                 printf("memory read fail.\n");
             printf("read byte: 0x%2x\n", obyte);
+            break;
+        case 'b':
+            ret = ch36x_write_mem_block(fd, memaddr + 1024, bufbts, bytes);
+            printf("Unable to write %d bytes.\n", ret);
+            break;
+        case 'd':
+            ret = ch36x_write_mem_block(fd, memaddr + 1024, (uint8_t*)bufdws, bytes);
+            printf("Unable to write %d bytes.\n", ret);
             break;
         default:
             break;
